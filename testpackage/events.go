@@ -14,3 +14,10 @@ const (
 	// New file has been uploaded to the system
 	FILE_UPLOADED eventType = "file_uploaded"
 )
+
+//go:generate ../goconst --type eventType2 --out data/eventType2.gen.ts
+type eventType2 string
+
+const (
+	NO_DOC eventType2 = "NO_DOC"
+)

@@ -33,8 +33,12 @@ type Renderer struct {
 func NewRenderer(out io.Writer) Renderer {
 	tmpl := template.New("tsunion")
 	tmpl.Funcs(template.FuncMap{
-		"splitLines": func(s, sep string) []string {
-			return strings.Split(s, sep)
+		"splitLines": func(s string) []string {
+			s = strings.TrimSpace(s)
+			if len(s) == 0 {
+				return []string{}
+			}
+			return strings.Split(s, "\n")
 		},
 	})
 	tmpl, err := tmpl.Parse(tsraw)
