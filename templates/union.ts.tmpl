@@ -1,0 +1,11 @@
+const {{.UnionName}} = [
+{{- range .Fields}}
+	{{- $lines := splitLines .Doc "\n" -}}
+	{{- range $lines}}
+	// {{ .}}
+	{{- end}}
+	"{{.Name -}}",
+{{- end}}
+] as const;
+
+type {{.TypeName}} = typeof eventTypes[number];
