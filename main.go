@@ -205,9 +205,12 @@ func (f *File) findSymbols(node ast.Node) bool {
 		name := vspec.Names[0].Name
 
 		lines := []string{}
-		for _, c := range vspec.Doc.List {
-			text := strings.TrimSpace(strings.TrimPrefix(c.Text, "//"))
-			lines = append(lines, text)
+
+		if vspec.Doc != nil {
+			for _, c := range vspec.Doc.List {
+				text := strings.TrimSpace(strings.TrimPrefix(c.Text, "//"))
+				lines = append(lines, text)
+			}
 		}
 		comment := strings.Join(lines, "\n")
 
