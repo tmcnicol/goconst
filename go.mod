@@ -5,7 +5,6 @@ go 1.23.5
 require (
 	github.com/matryer/is v1.4.1
 	github.com/spf13/cobra v1.9.1
-	golang.org/x/text v0.23.0
 	golang.org/x/tools v0.31.0
 )
 
