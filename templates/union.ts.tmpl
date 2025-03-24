@@ -3,11 +3,11 @@ export const {{.UnionName}} = [
 	{{- $lines := splitLines .Doc -}}
 	{{ if gt (len $lines) 0 }}
 		{{- range $lines}}
-		// {{.}}
-		{{- end}}
-	{{ end }}
-	"{{.Name -}}",
-{{- end}}
+	// {{.}}
+		{{- end -}}
+	{{- end}}
+	"{{.Name}}",
+{{end -}}
 ] as const;
 
 export type {{.TypeName}} = typeof {{.UnionName}}[number];
