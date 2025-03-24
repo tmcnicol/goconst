@@ -1,3 +1,7 @@
+[private]
+default:
+	@just --list
+
 run:
 	go run ./... --type eventType,eventType2 ./...
 
