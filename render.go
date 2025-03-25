@@ -12,6 +12,7 @@ import (
 var tsraw string
 
 type Data struct {
+	Package   string
 	UnionName string
 	TypeName  string
 

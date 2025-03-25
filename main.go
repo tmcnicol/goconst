@@ -29,7 +29,7 @@ func run() error {
 		Use:   "goconst",
 		Short: "Generate types from consants",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return parseConst(cmd, typeNames, out, args)
+			return generate(cmd, typeNames, out, args)
 		},
 	}
 
@@ -45,13 +45,13 @@ func run() error {
 	return cmd.Execute()
 }
 
-func parseConst(_ *cobra.Command, typeNames string, out string, patterns []string) error {
+func generate(_ *cobra.Command, typeNames string, out string, patterns []string) error {
 	types := strings.Split(typeNames, ",")
 	packages := loadPackages(patterns)
 	for _, pkg := range packages {
 		for _, typ := range types {
 			values := findValues(typ, pkg)
-			renderValues(values, out, typ)
+			renderValues(values, pkg.packageName, out, typ)
 		}
 	}
 	return nil
@@ -72,12 +72,12 @@ func loadPackages(patterns []string) []*Package {
 	out := make([]*Package, len(pkgs))
 	for i, pkg := range pkgs {
 		p := &Package{
-			name:  pkg.Name,
-			files: make([]*File, len(pkg.Syntax)),
+			name:        pkg.Name,
+			packageName: pkg.PkgPath,
+			files:       make([]*File, len(pkg.Syntax)),
 		}
 
 		for j, file := range pkg.Syntax {
-
 			p.files[j] = &File{
 				file: file,
 				pkg:  p,
@@ -89,7 +89,7 @@ func loadPackages(patterns []string) []*Package {
 	return out
 }
 
-func renderValues(values []Value, out string, typ string) {
+func renderValues(values []Value, packageName, out, typ string) {
 	writer, cleanup, err := loadTarget(out)
 	if err != nil {
 		log.Fatalf("creating output: %v", err)
@@ -111,6 +111,7 @@ func renderValues(values []Value, out string, typ string) {
 	}
 
 	data := Data{
+		Package:   packageName,
 		UnionName: fmt.Sprintf("%ss", typ),
 		TypeName:  typeName,
 		Fields:    fields,
@@ -165,8 +166,9 @@ func findValues(typeName string, pkg *Package) []Value {
 }
 
 type Package struct {
-	name  string
-	files []*File
+	name        string
+	packageName string
+	files       []*File
 }
 
 type File struct {
