@@ -24,6 +24,8 @@ type Field struct {
 	Doc string
 	// Name of the const
 	Name string
+	// Value of the constant as a string representation
+	Value string
 }
 
 type Renderer struct {

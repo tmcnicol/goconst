@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -50,8 +51,8 @@ func generate(_ *cobra.Command, typeNames string, out string, patterns []string)
 	packages := loadPackages(patterns)
 	for _, pkg := range packages {
 		for _, typ := range types {
-			values := findValues(typ, pkg)
-			renderValues(values, pkg.packageName, out, typ)
+			constants := findConstants(typ, pkg)
+			renderValues(constants, pkg.packageName, out, typ)
 		}
 	}
 	return nil
@@ -89,7 +90,7 @@ func loadPackages(patterns []string) []*Package {
 	return out
 }
 
-func renderValues(values []Value, packageName, out, typ string) {
+func renderValues(values []Constant, packageName, out, typ string) {
 	writer, cleanup, err := loadTarget(out)
 	if err != nil {
 		log.Fatalf("creating output: %v", err)
@@ -104,9 +105,11 @@ func renderValues(values []Value, packageName, out, typ string) {
 
 	fields := make([]Field, len(values))
 	for i, v := range values {
+		fmt.Println()
 		fields[i] = Field{
-			Name: v.name,
-			Doc:  v.doc,
+			Name:  v.name,
+			Doc:   v.doc,
+			Value: v.value,
 		}
 	}
 
@@ -151,18 +154,18 @@ func fileTarget(path string) (io.Writer, func(), error) {
 	return file, cleanup, nil
 }
 
-func findValues(typeName string, pkg *Package) []Value {
-	values := []Value{}
+func findConstants(typeName string, pkg *Package) []Constant {
+	constants := []Constant{}
 	for _, file := range pkg.files {
 		// Set the state for this run of the walker.
 		file.typeName = typeName
-		file.values = nil
+		file.constants = nil
 		if file.file != nil {
 			ast.Inspect(file.file, file.findSymbols)
-			values = append(values, file.values...)
+			constants = append(constants, file.constants...)
 		}
 	}
-	return values
+	return constants
 }
 
 type Package struct {
@@ -177,13 +180,15 @@ type File struct {
 	comments ast.CommentMap
 
 	// These fields are reset for each type being generated.
-	typeName string  // Name of the constant type.
-	values   []Value // Accumulator for names of the consts.
+	typeName  string     // Name of the constant type.
+	constants []Constant // Accumulator for names of the consts.
 }
 
-type Value struct {
-	name string
-	doc  string
+// Represenation of a const
+type Constant struct {
+	name  string
+	doc   string
+	value string
 }
 
 // Finds all of the const with the variable name
@@ -205,6 +210,10 @@ func (f *File) findSymbols(node ast.Node) bool {
 			return true
 		}
 		name := vspec.Names[0].Name
+		value, err := readValue(vspec)
+		if err != nil {
+			return true
+		}
 
 		lines := []string{}
 
@@ -216,12 +225,26 @@ func (f *File) findSymbols(node ast.Node) bool {
 		}
 		comment := strings.Join(lines, "\n")
 
-		value := Value{
-			name: name,
-			doc:  comment,
+		constant := Constant{
+			name:  name,
+			doc:   comment,
+			value: value,
 		}
 
-		f.values = append(f.values, value)
+		f.constants = append(f.constants, constant)
 	}
 	return false
+}
+
+func readValue(vspec *ast.ValueSpec) (string, error) {
+	if len(vspec.Values) != 1 {
+		return "", fmt.Errorf("invalid number of values: %d", len(vspec.Values))
+	}
+
+	value, ok := vspec.Values[0].(*ast.BasicLit)
+	if !ok {
+		return "", fmt.Errorf("invalid type: %T", value)
+	}
+
+	return strconv.Unquote(value.Value)
 }
