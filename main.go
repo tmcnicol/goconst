@@ -105,7 +105,6 @@ func renderValues(values []Constant, packageName, out, typ string) {
 
 	fields := make([]Field, len(values))
 	for i, v := range values {
-		fmt.Println()
 		fields[i] = Field{
 			Name:  v.name,
 			Doc:   v.doc,
