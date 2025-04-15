@@ -34,10 +34,10 @@ export const eventTypes = [
 	"created",
 ] as const;
 
-// Thing was created
-export const CREATED = "created";
-
 export type EventType = typeof eventTypes[number];
+
+// Thing was created
+export const CREATED: EventType = "created";
 `,
 		},
 		"no fields": {

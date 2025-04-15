@@ -12,13 +12,14 @@ export const {{.UnionName}} = [
 	"{{.Value}}",
 {{end -}}
 ] as const;
-{{ range .Fields }}
-{{- $lines := splitLines .Doc -}}
-{{ if gt (len $lines) 0 }}
-	{{- range $lines}}
-// {{.}}
-	{{- end -}}
-{{- end}}
-export const {{.Name}} = "{{.Value}}";
-{{end}}
+
 export type {{.TypeName}} = typeof {{.UnionName}}[number];
+{{ range .Fields }}
+	{{- $lines := splitLines .Doc -}}
+	{{ if gt (len $lines) 0 }}
+		{{- range $lines}}
+// {{.}}
+		{{- end -}}
+	{{- end}}
+export const {{.Name}}: {{$.TypeName}} = "{{.Value}}";
+{{end -}}
