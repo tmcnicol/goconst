@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/matryer/is"
 )
 
@@ -33,6 +34,9 @@ export const eventTypes = [
 	"created",
 ] as const;
 
+// Thing was created
+export const CREATED = "created";
+
 export type EventType = typeof eventTypes[number];
 `,
 		},
@@ -56,12 +60,19 @@ export type EventType = typeof eventTypes[number];
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			is := is.New(t)
-			result := new(bytes.Buffer)
-			r := NewRenderer(result)
+			raw := new(bytes.Buffer)
+			r := NewRenderer(raw)
 
 			err := r.Render(tc.input)
 			is.NoErr(err)
-			is.Equal(tc.expected, result.String())
+
+			result := raw.String()
+
+			if !cmp.Equal(tc.expected, result) {
+				t.Log(cmp.Diff(tc.expected, result))
+				is.Fail() // expected output didn't match
+			}
+
 		})
 	}
 }
